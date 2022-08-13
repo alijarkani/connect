@@ -6,12 +6,36 @@ class Partition(object):
         """
         Represent cells in the vicinity along a line that has a same owner
         """
-        self.player = player
-        self.count = count
-        self.start_index = start_index
-        self.end_index = end_index
-        self.start_stone = start_stone
-        self.end_stone = end_stone
+        self._player = player
+        self._count = count
+        self._start_index = start_index
+        self._end_index = end_index
+        self._start_stone = start_stone
+        self._end_stone = end_stone
+
+    @property
+    def player(self):
+        return self._player
+
+    @property
+    def count(self):
+        return self._count
+
+    @property
+    def start_index(self):
+        return self._start_index
+
+    @property
+    def end_index(self):
+        return self._end_index
+
+    @property
+    def start_stone(self):
+        return self._start_stone
+
+    @property
+    def end_stone(self):
+        return self._end_stone
 
 
 class Utils(object):
