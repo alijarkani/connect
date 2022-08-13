@@ -35,14 +35,16 @@ class Partition(object):
 
     @property
     def end_point(self):
-        return self._end_point
+        return self._end
 
 
 class Utils(object):
-    def __init__(self, size):
+    def __init__(self, size, board_map):
         self.size = size
+        self.map = board_map
 
-    def line_partition(self, line, x, y):
+    def line_partition(self, x, y):
+        line = self.map[x, y]
         parts = []
         player = None
         count = 0

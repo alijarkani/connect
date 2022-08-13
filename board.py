@@ -19,7 +19,7 @@ class Board(object):
         self._size = size
         self._empty_count = size * size
         self._map = np.empty((size, size), dtype=object)
-        self._utils = Utils(size)
+        self._utils = Utils(size, self._map)
         self._history = []
 
     def get(self, x, y) -> Optional[Stone]:
@@ -81,7 +81,7 @@ class Board(object):
         max_part = None
 
         for x, y in self.utils.get_every_lines_indexes(cross_point):
-            parts = self.utils.line_partition(self._map[x, y], x, y)
+            parts = self.utils.line_partition(x, y)
             for part in parts:
                 if part.player == player and part.count > max_count:
                     max_count = part.count
