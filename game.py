@@ -55,10 +55,13 @@ class Game(object):
     def handle(self):
         self._board.draw()
 
+        for player in self.players:
+            player.prepare(self._board, self)
+
         while self._board.has_empty_cell:
             player = self.turn()
             actions_count = 0
-            for point in player.play(self._board, self, player):
+            for point in player.play(self._board, self):
                 self._board.put_stone(point, player)
 
                 if not self._board.has_empty_cell:

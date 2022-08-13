@@ -21,6 +21,9 @@ class Player(object):
         self._color = tuple(np.round((7 * np.array(color) + 3 * np.array((127, 127, 127))) / 10).astype(int))
         self._is_ai = True
 
+    def prepare(self, board: Board, game: Game):
+        pass
+
     @property
     def title(self):
         return self._title
