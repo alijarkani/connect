@@ -19,11 +19,14 @@ class Board(object):
         self._size = size
         self._empty_count = size * size
         self._map = np.empty((size, size), dtype=object)
-        self.utils = Utils(size)
-
+        self._utils = Utils(size)
 
     def get(self, x, y) -> Optional[Stone]:
         return self.map[x, y]
+
+    @property
+    def utils(self):
+        return self._utils
 
     @property
     def size(self):
@@ -90,7 +93,6 @@ class Board(object):
         print(message)
 
 
-
 class GUIBoard(Board):
     def __init__(self, size, background='wood.jpg'):
         """
@@ -141,7 +143,7 @@ class GUIBoard(Board):
         return result
 
     def rest(self, delay):
-        pygame.time.wait(int(delay*100))
+        pygame.time.wait(int(delay * 100))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 print('Program closed')
