@@ -4,7 +4,7 @@ import math
 import time
 from stone import Stone
 from utils import Utils
-from typing import Optional
+from typing import Optional, List
 
 BOX_SIZE = 40
 BOARD_PADDING = 45
@@ -20,6 +20,7 @@ class Board(object):
         self._empty_count = size * size
         self._map = np.empty((size, size), dtype=object)
         self._utils = Utils(size)
+        self._history = []
 
     def get(self, x, y) -> Optional[Stone]:
         return self.map[x, y]
@@ -27,6 +28,10 @@ class Board(object):
     @property
     def utils(self):
         return self._utils
+
+    @property
+    def history(self) -> List[Stone]:
+        return self._history
 
     @property
     def size(self):
@@ -67,6 +72,7 @@ class Board(object):
         self._empty_count -= 1
         stone = Stone(owner=player, pos=point)
         self._map[point] = stone
+        self._history.append(stone)
         print(player.title, 'put a stone at ', point)
         return True
 
