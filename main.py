@@ -1,3 +1,4 @@
+from sys import exit
 from board import GUIBoard, Board
 from game import Game
 from player import Human, WHITE, BLACK, BLUE, RED, GREEN
@@ -16,4 +17,5 @@ if __name__ == '__main__':
     board = GUIBoard(size=13)
     game = Game(board, players, shuffle_players=False)
     game.handle()
+    exit()
 
