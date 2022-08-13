@@ -1,5 +1,5 @@
 # Connect
-A mini graphics game for practice with AI
+A mini graphics game for practicing AI
 
 ![Demo](https://github.com/alijarkani/connect/blob/master/images/demo.png?raw=true)
 
