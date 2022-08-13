@@ -81,7 +81,7 @@ class Board(object):
         max_part = None
 
         for x, y in self.utils.get_every_lines_indexes(cross_point):
-            parts = self.utils.line_partition(self._map[x, y])
+            parts = self.utils.line_partition(self._map[x, y], x, y)
             for part in parts:
                 if part.player == player and part.count > max_count:
                     max_count = part.count

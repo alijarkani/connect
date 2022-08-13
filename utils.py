@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Partition(object):
-    def __init__(self, player, count, start_index, end_index, start_stone, end_stone):
+    def __init__(self, player, count, start_index, end_index, start, end):
         """
         Represent cells in the vicinity along a line that has a same owner
         """
@@ -10,8 +10,8 @@ class Partition(object):
         self._count = count
         self._start_index = start_index
         self._end_index = end_index
-        self._start_stone = start_stone
-        self._end_stone = end_stone
+        self._start = start
+        self._end = end
 
     @property
     def player(self):
@@ -30,39 +30,39 @@ class Partition(object):
         return self._end_index
 
     @property
-    def start_stone(self):
-        return self._start_stone
+    def start(self):
+        return self._start
 
     @property
-    def end_stone(self):
-        return self._end_stone
+    def end_point(self):
+        return self._end_point
 
 
 class Utils(object):
     def __init__(self, size):
         self.size = size
 
-    def line_partition(self, line):
+    def line_partition(self, line, x, y):
         parts = []
         player = None
         count = 0
         start = 0
-        start_stone = None
+        start_point = x[0], y[0]
         for i, stone in enumerate(line):
             owner = stone.owner if stone is not None else None
             if owner == player:
                 count += 1
             else:
                 if count:
-                    parts.append(Partition(player, count, start, i - 1, start_stone, line[i-1]))
+                    parts.append(Partition(player, count, start, i - 1, start_point, (x[i-1], y[i-1])))
 
                 player = owner
                 count = 1
                 start = i
-                start_stone = stone
+                start_point = x[i], y[i]
 
         if count:
-            parts.append(Partition(player, count, start, len(line) - 1, start_stone, line[-1]))
+            parts.append(Partition(player, count, start, len(line) - 1, start_point, (x[-1], y[-1])))
 
         return parts
 
