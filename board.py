@@ -13,6 +13,9 @@ BOTTOM_SIZE = 60
 
 class Board(object):
     def __init__(self, size):
+        """
+        It's a basic board of the game. It contains map that is List[List[Optional[Stone]]] and store state of the game.
+        """
         self._size = size
         self._empty_count = size * size
         self._map = np.empty((size, size), dtype=object)
@@ -48,7 +51,13 @@ class Board(object):
     def rest(self, delay):
         pass
 
-    def put_stone(self, point, player):
+    def put_stone(self, point: tuple, player):
+        """
+        When a player made action then this is where the stone is placed on the board
+        :param point: Tuple[int, int]
+        :param player: Player
+        :return: bool
+        """
         if not point or not self.is_empty(point):
             return False
 
@@ -84,6 +93,10 @@ class Board(object):
 
 class GUIBoard(Board):
     def __init__(self, size, background='wood.jpg'):
+        """
+        It's a graphical user interface including show the board with squares and show stones with circles,
+        it also can detect mouse click on board
+        """
         super().__init__(size)
 
         pygame.init()

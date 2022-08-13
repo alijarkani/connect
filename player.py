@@ -2,6 +2,7 @@ import numpy as np
 from abc import abstractmethod
 from board import Board, GUIBoard
 from game import Game
+from typing import Generator, Tuple, Any
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -12,7 +13,9 @@ BLACK = (0, 0, 0)
 
 class Player(object):
     def __init__(self, title: str, color: tuple):
-        """Each player (human or AI) in the game has to be a Player object"""
+        """
+        Each player (human or AI) in the game has to be a Player instance
+        """
         self._title = title
         self._border_color = color
         self._color = tuple(np.round((7 * np.array(color) + 3 * np.array((127, 127, 127))) / 10).astype(int))
@@ -35,17 +38,26 @@ class Player(object):
         return self._is_ai
 
     @abstractmethod
-    def play(self, board: Board, game: Game, me):
+    def play(self, board: Board, game: Game, me) -> Generator[Tuple[int, int], Any, None]:
+        """
+        The player should decide its action here,
+        it can either return an array of coordinates or yield each coordinate separately
+        """
         pass
 
 
 class Human(Player):
     def __init__(self, title, color):
-        """A human player logic"""
+        """
+        A human player logic
+        """
         super().__init__(title, color)
         self._is_ai = False
 
     def show_map(self, board_map, size):
+        """
+        This method is only used when board doesn't have GUI
+        """
         line = '    '
         for i in range(size):
             line += str(i % 10) + ' '
@@ -59,6 +71,10 @@ class Human(Player):
             print(line)
 
     def play(self, board: Board, game: Game, me: Player):
+        """
+        This is a human player instance. If the board supported GUI input it'll use it
+        otherwise, it'll use numeric input
+        """
         if isinstance(board, GUIBoard):
             for point in board.wait_for_click():
                 yield point

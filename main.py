@@ -13,7 +13,7 @@ players = [
 
 
 if __name__ == '__main__':
-    board = GUIBoard(size=12)
+    board = GUIBoard(size=13)
     game = Game(board, players, shuffle_players=False)
     game.handle()
 

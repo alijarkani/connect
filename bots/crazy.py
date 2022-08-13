@@ -6,7 +6,7 @@ from board import Board
 
 class CrazyAI(Player):
     def __init__(self, title, color):
-        """A human player logic"""
+        """Random AI player"""
         super().__init__(title, color)
 
     def play(self, board: Board, game: Game, me: Player):

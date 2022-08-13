@@ -3,6 +3,9 @@ import numpy as np
 
 class Partition(object):
     def __init__(self, player, count, start_index, end_index, start_stone, end_stone):
+        """
+        Represent cells in the vicinity along a line that has a same owner
+        """
         self.player = player
         self.count = count
         self.start_index = start_index
