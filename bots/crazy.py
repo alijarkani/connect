@@ -9,7 +9,7 @@ class CrazyAI(Player):
         """Random AI player"""
         super().__init__(title, color)
 
-    def play(self, board: Board, game: Game, me: Player):
+    def play(self, board: Board, game: Game):
         while True:
             row = random.randint(0, board.size - 1)
             col = random.randint(0, board.size - 1)
