@@ -44,11 +44,11 @@ class Utils(object):
 
     def get_rows_indexes(self):
         for i in range(self.size):
-            yield np.array([i]), np.arange(0, self.size)
+            yield i * np.ones(self.size, dtype=int), np.arange(0, self.size)
 
     def get_cols_indexes(self):
         for i in range(self.size):
-            yield np.arange(0, self.size), np.array([i])
+            yield np.arange(0, self.size), i * np.ones(self.size, dtype=int)
 
     def get_ascending_line_indexes(self):
         for i in range(-self.size + 1, self.size):
@@ -66,8 +66,8 @@ class Utils(object):
         if cross_point:
             row, col = cross_point
 
-            yield np.array([row]), np.arange(0, self.size)
-            yield np.arange(0, self.size), np.array([col])
+            yield row * np.ones(self.size, dtype=int), np.arange(0, self.size)
+            yield np.arange(0, self.size), col * np.ones(self.size, dtype=int)
 
             total = row + col + 1
             sub = row - col
