@@ -98,16 +98,17 @@ class Board(object):
         print('DRAW')
 
     def show_message(self, message):
-        print(message)
+        if self.verbose:
+            print(message)
 
 
 class GUIBoard(Board):
-    def __init__(self, size, background='wood.jpg'):
+    def __init__(self, size, verbose=False, background='wood.jpg'):
         """
         It's a graphical user interface including show the board with squares and show stones with circles,
         it also can detect mouse click on board
         """
-        super().__init__(size)
+        super().__init__(size, verbose)
 
         pygame.init()
         pygame.display.set_caption('Game')
