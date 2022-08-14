@@ -34,7 +34,7 @@ class Partition(object):
         return self._start
 
     @property
-    def end_point(self):
+    def end(self):
         return self._end
 
 

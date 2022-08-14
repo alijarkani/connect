@@ -174,10 +174,10 @@ class GUIBoard(Board):
             return min(self._size, max(0, row)), min(self._size, max(0, col))
 
     def show_winner(self, player, partition):
-        x, y = partition.start_stone.pos
+        x, y = partition.start
         start = (y * BOX_SIZE + BOARD_PADDING, x * BOX_SIZE + BOARD_PADDING)
 
-        x, y = partition.end_stone.pos
+        x, y = partition.end
         end = (y * BOX_SIZE + BOARD_PADDING, x * BOX_SIZE + BOARD_PADDING)
         pygame.draw.line(self._screen, (0, 255, 0), start, end, 5)
         pygame.display.update()
