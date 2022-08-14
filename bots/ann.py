@@ -13,16 +13,17 @@ class ANN(Player):
         self.model = load_model('bots/ann.h5')
 
     def get_state(self, board):
-        state = np.zeros((SIZE, SIZE), dtype=int)
+        state = np.zeros((SIZE, SIZE, 2), dtype=int)
         for r, row in enumerate(board.map):
             for c, cell in enumerate(row):
                 if cell is not None:
-                    state[r, c] = 1 if cell.owner == self else 2
+                    key = 0 if cell.owner == self else 1
+                    state[r, c, key] = 1
 
         return state
 
     def play(self, board: Board):
-        state = self.get_state(board).reshape((1, 1, SIZE, SIZE))
+        state = self.get_state(board).reshape((1, 1, SIZE, SIZE, 2))
         heatmap = self.model.predict(state, verbose=0).reshape(-1)
 
         while board.has_empty_cell:

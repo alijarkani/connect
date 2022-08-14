@@ -28,7 +28,7 @@ WIN = 6
 class ConnectEnv(Env):
     def __init__(self):
         self.me = Player('Me', WHITE)
-        self.rival = CrazyAI('Rival', BLACK)
+        self.rival = ANN('Rival', BLACK) if exists('bots/ann.h5') else CrazyAI('Rival', BLACK)
         if GUI:
             self.board = GUIBoard(size=SIZE)
             self.board.draw()
@@ -115,7 +115,6 @@ class ConnectEnv(Env):
 def build_model():
     model = Sequential()
     model.add(Input((1, SIZE, SIZE, 2)))
-    # model.add(Reshape((SIZE, SIZE, 2)))
     model.add(Conv2D(32, (3, 3), activation='relu'))
     model.add(Conv2D(32, (3, 3), activation='relu'))
     model.add(Conv2D(64, (3, 3), activation='relu'))
