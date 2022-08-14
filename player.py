@@ -41,7 +41,7 @@ class Player(object):
         return self._is_ai
 
     @abstractmethod
-    def play(self, board: Board, game: Game) -> Generator[Tuple[int, int], Any, None]:
+    def play(self, board: Board) -> Generator[Tuple[int, int], Any, None]:
         """
         The player should decide its action here,
         it can either return an array of coordinates or yield each coordinate separately
@@ -73,7 +73,7 @@ class Human(Player):
                 line += ' '
             print(line)
 
-    def play(self, board: Board, game: Game):
+    def play(self, board: Board):
         """
         This is a human player instance. If the board supported GUI input it'll use it
         otherwise, it'll use numeric input
