@@ -12,11 +12,12 @@ BOTTOM_SIZE = 60
 
 
 class Board(object):
-    def __init__(self, size):
+    def __init__(self, size, verbose=False):
         """
         It's a basic board of the game. It contains map that is List[List[Optional[Stone]]] and store state of the game.
         """
         self._size = size
+        self.verbose = verbose
         self._empty_count = size * size
         self._map = np.empty((size, size), dtype=object)
         self._utils = Utils(size, self._map)
@@ -73,7 +74,8 @@ class Board(object):
         stone = Stone(owner=player, pos=point)
         self._map[point] = stone
         self._history.append(stone)
-        print(player.title, 'put a stone at ', point)
+        if self.verbose:
+            print(player.title, 'put a stone at ', point)
         return True
 
     def get_max_partition(self, player, cross_point=None):
