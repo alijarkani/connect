@@ -61,7 +61,7 @@ class Game(object):
         while self._board.has_empty_cell:
             player = self.turn()
             actions_count = 0
-            for point in player.play(self._board, self):
+            for point in player.play(self._board):
                 self._board.put_stone(point, player)
 
                 if not self._board.has_empty_cell:
