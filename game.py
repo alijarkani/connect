@@ -22,6 +22,9 @@ class Game(object):
         if shuffle_players:
             random.shuffle(self._players)
 
+        for player in self.players:
+            player.prepare(self._board, self)
+
     @property
     def players(self):
         return self._players
@@ -54,9 +57,6 @@ class Game(object):
 
     def handle(self):
         self._board.draw()
-
-        for player in self.players:
-            player.prepare(self._board, self)
 
         while self._board.has_empty_cell:
             player = self.turn()
