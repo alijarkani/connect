@@ -38,6 +38,7 @@ class ConnectEnv(Env):
         self.action_space = Discrete(SIZE * SIZE)
         self.observation_space = Box(low=0, high=1, shape=(SIZE, SIZE, 2))
         self.state = self.get_state()
+        self.last_reward = 0
 
 
     def get_state(self):
@@ -54,12 +55,14 @@ class ConnectEnv(Env):
     def calc_reward(self):
         reward = 0
         done = not self.board.has_empty_cell
+        win = False
         for x, y in self.board.utils.get_every_lines_indexes():
             parts = self.board.utils.line_partition(x, y)
             for i, part in enumerate(parts):
                 if part.player is not None:
                     if part.count >= WIN:
                         done = True
+                        win = part.player == self.me
 
                     right = 0
                     left = 0
@@ -76,7 +79,7 @@ class ConnectEnv(Env):
                     c = max(0, part.count + min(right, WIN - 1) + min(left, WIN - 1) - WIN)
                     reward += part.count ** 2 * (1 if part.player == self.me else -1) * c
 
-        return reward, done
+        return reward, done, win
 
     def step(self, action):
         row = action // SIZE
@@ -85,30 +88,35 @@ class ConnectEnv(Env):
         self.board.put_stone((row, col), self.me)
 
         if self.board.has_empty_cell:
-            row, col = self.rival.play(self.board).__next__()
-            self.board.put_stone((row, col), self.rival)
+            rival_row, rival_col = self.rival.play(self.board).__next__()
+            self.board.put_stone((rival_row, rival_col), self.rival)
 
-        reward, done = self.calc_reward()
+        reward, done, win = self.calc_reward()
+        reward_diff = reward - self.last_reward
+        self.last_reward = reward
         info = {}
 
-        if not was_empty and self.board.has_empty_cell:
-            reward = min(-100, reward)
-            empty_cells = np.where((self.board.map == None).reshape(-1))[0]
-            rival_action = random.choice(empty_cells)
-            row = rival_action // SIZE
-            col = rival_action % SIZE
-            self.board.put_stone((row, col), self.me)
+        if not was_empty:
+            reward_diff -= 10
 
-        return self.state, reward, done, info
+        if done:
+            if win:
+                reward_diff += 20
+            else:
+                reward_diff -= 20
+
+        return self.state, reward_diff, done, info
 
     def reset(self, *, seed: Optional[int] = None, return_info: bool = False, options: Optional[dict] = None):
         if GUI:
             self.board = GUIBoard(size=SIZE)
             self.board.draw()
+            self.board.show_message('Won' if self.last_reward > 0 else 'Lost')
         else:
             self.board = Board(size=SIZE)
 
         self.state = self.get_state()
+        self.last_reward = 0
         return self.state
 
 
@@ -133,11 +141,11 @@ if __name__ == '__main__':
 
     model = load_model('bots/ann.h5') if exists('bots/ann.h5') else build_model()
     policy = BoltzmannQPolicy()
-    memory = SequentialMemory(limit=250000, window_length=1)
+    memory = SequentialMemory(limit=50000, window_length=1)
     dqn = DQNAgent(model=model, memory=memory, policy=policy,
                    nb_actions=SIZE * SIZE, nb_steps_warmup=10, target_model_update=1e-2)
 
     dqn.compile(Adam(lr=1e-3), metrics=['mse'])
-    dqn.fit(env, nb_steps=250000, visualize=False, verbose=1)
+    dqn.fit(env, nb_steps=50000, visualize=False, verbose=1)
     model.save('bots/ann.h5')
     print('Done')
