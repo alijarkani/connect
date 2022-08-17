@@ -20,9 +20,18 @@ class Player(object):
         self._border_color = color
         self._color = tuple(np.round((7 * np.array(color) + 3 * np.array((127, 127, 127))) / 10).astype(int))
         self._is_ai = True
+        self._rivals = []
 
     def prepare(self, board: Board, game: Game):
-        pass
+        count = len(game.players)
+        idx = game.players.index(self)
+        for i in range(idx + 1, idx + count):
+            self._rivals.append(game.players[i % count])
+
+    @property
+    def rivals(self):
+        return self._rivals
+
 
     @property
     def title(self):
