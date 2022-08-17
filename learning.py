@@ -1,7 +1,7 @@
 # https://www.youtube.com/watch?v=cO5g5qLrLSo
 # https://www.youtube.com/watch?v=bD6V3rcr_54
 
-
+import os
 import random
 import numpy as np
 from os.path import exists
@@ -10,26 +10,28 @@ from gym.spaces import Discrete, Box
 from board import Board, GUIBoard
 from player import Player, WHITE, BLACK
 from bots.ann import ANN
-from bots.crazy import CrazyAI
-from keras.models import Sequential, load_model
-from keras.layers import Dense, Flatten, Conv2D, Input, Reshape
+from bots.greedy import Greedy
+from keras.models import Sequential, load_model, Model
+from keras.layers import Dense, Flatten, Conv2D, Input, Reshape, Concatenate
 from keras.optimizers import Adam
 from rl.agents import DQNAgent
-from rl.policy import BoltzmannQPolicy
+from rl.policy import BoltzmannQPolicy, GreedyQPolicy
 from rl.memory import SequentialMemory
 from typing import Optional
-
 
 GUI = True
 SIZE = 13
 WIN = 6
+STONE_TURN = 2
 
 
 class ConnectEnv(Env):
     def __init__(self):
+        self.last_result = "Start"
         self.me = Player('Me', WHITE)
-        self.rival = ANN('Rival', BLACK) if exists('bots/ann.h5') else CrazyAI('Rival', BLACK)
+        self.rival = Greedy('Rival', BLACK)
         if GUI:
+            os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0, 0)
             self.board = GUIBoard(size=SIZE)
             self.board.draw()
         else:
@@ -37,9 +39,11 @@ class ConnectEnv(Env):
 
         self.action_space = Discrete(SIZE * SIZE)
         self.observation_space = Box(low=0, high=1, shape=(SIZE, SIZE, 2))
-        self.state = self.get_state()
         self.last_reward = 0
 
+        rival_row, rival_col = self.rival.play(self.board).__next__()
+        self.board.put_stone((rival_row, rival_col), self.rival)
+        self.state = self.get_state()
 
     def get_state(self):
         state = np.zeros((SIZE, SIZE, 2), dtype=int)
@@ -50,7 +54,6 @@ class ConnectEnv(Env):
                     state[r, c, key] = 1
 
         return state
-
 
     def calc_reward(self):
         reward = 0
@@ -63,6 +66,16 @@ class ConnectEnv(Env):
                     if part.count >= WIN:
                         done = True
                         win = part.player == self.me
+                    elif part.player != self.me and part.count >= WIN - STONE_TURN + 1:
+                        done = (
+                                    i - 1 >= 0 and
+                                    parts[i - 1].player is None and
+                                    parts[i - 1].count >= WIN - part.count
+                               ) or (
+                                    i + 1 < len(parts) and
+                                    parts[i + 1].player is None and
+                                    parts[i + 1].count >= WIN - part.count
+                               )
 
                     right = 0
                     left = 0
@@ -77,61 +90,80 @@ class ConnectEnv(Env):
                         right += parts[k].count
 
                     c = max(0, part.count + min(right, WIN - 1) + min(left, WIN - 1) - WIN)
-                    reward += part.count ** 2 * (1 if part.player == self.me else -1) * c
+                    reward += part.count ** 2 * (2 if part.player == self.me else -3) * c
 
         return reward, done, win
 
     def step(self, action):
         row = action // SIZE
         col = action % SIZE
-        was_empty = self.board.is_empty((row, col))
-        self.board.put_stone((row, col), self.me)
+        if not self.board.is_empty((row, col)):
+            return self.state, -30, False, {}
 
-        if self.board.has_empty_cell:
-            rival_row, rival_col = self.rival.play(self.board).__next__()
-            self.board.put_stone((rival_row, rival_col), self.rival)
+        self.board.put_stone((row, col), self.me)
 
         reward, done, win = self.calc_reward()
         reward_diff = reward - self.last_reward
         self.last_reward = reward
         info = {}
 
-        if not was_empty:
-            reward_diff -= 10
+        if not done and self.board.has_empty_cell:
+            rival_row, rival_col = self.rival.play(self.board).__next__()
+            self.board.put_stone((rival_row, rival_col), self.rival)
 
-        if done:
+            for x, y in self.board.utils.get_every_lines_indexes((rival_row, rival_col)):
+                max_count, _ = self.rival.max_possibilities(self.board.map[x, y], self.rival, STONE_TURN - 1)
+                if max_count >= WIN:
+                    done = True
+
+        if not self.board.has_empty_cell:
+            done = True
+            self.last_result = "Draw"
+        elif done:
             if win:
-                reward_diff += 20
+                reward_diff += 100
+                self.last_result = "Won"
             else:
-                reward_diff -= 20
+                reward_diff -= 50
+                self.last_result = "Lost"
 
+        self.state = self.get_state()
         return self.state, reward_diff, done, info
 
     def reset(self, *, seed: Optional[int] = None, return_info: bool = False, options: Optional[dict] = None):
         if GUI:
             self.board = GUIBoard(size=SIZE)
             self.board.draw()
-            self.board.show_message('Won' if self.last_reward > 0 else 'Lost')
+            self.board.show_message(self.last_result)
         else:
             self.board = Board(size=SIZE)
 
+        rival_row, rival_col = self.rival.play(self.board).__next__()
+        self.board.put_stone((rival_row, rival_col), self.rival)
         self.state = self.get_state()
         self.last_reward = 0
         return self.state
 
 
 def build_model():
-    model = Sequential()
-    model.add(Input((1, SIZE, SIZE, 2)))
-    model.add(Conv2D(32, (3, 3), activation='relu'))
-    model.add(Conv2D(32, (3, 3), activation='relu'))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(Conv2D(128, (3, 3), activation='relu'))
-    model.add(Flatten())
-    model.add(Dense(256, activation='relu'))
-    model.add(Dense(256, activation='relu'))
-    model.add(Dense(SIZE * SIZE, activation='linear'))
+    input = Input((1, SIZE, SIZE, 2))
+
+    layer0 = input
+    conv1 = Conv2D(8, (2, 2), activation='relu')(layer0)
+    conv2 = Conv2D(16, (2, 2), activation='relu')(conv1)
+    conv3 = Conv2D(32, (2, 2), activation='relu')(conv2)
+
+    part0 = Dense(256, activation='relu')(Flatten()(input))
+    part1 = Dense(256, activation='relu')(Flatten()(conv1))
+    part2 = Dense(256, activation='relu')(Flatten()(conv2))
+    part3 = Dense(256, activation='relu')(Flatten()(conv3))
+
+    fc1 = Concatenate()([part0, part1, part2, part3])
+    fc2 = Dense(512, activation='relu', kernel_regularizer='L2')(fc1)
+    fc3 = Dense(SIZE * SIZE, activation='linear')(fc2)
+
+    outputs = fc3
+    model = Model(inputs=input, outputs=outputs)
     model.summary()
     return model
 
@@ -140,12 +172,12 @@ if __name__ == '__main__':
     env = ConnectEnv()
 
     model = load_model('bots/ann.h5') if exists('bots/ann.h5') else build_model()
-    policy = BoltzmannQPolicy()
-    memory = SequentialMemory(limit=50000, window_length=1)
+    policy = GreedyQPolicy()
+    memory = SequentialMemory(limit=10000, window_length=1)
     dqn = DQNAgent(model=model, memory=memory, policy=policy,
                    nb_actions=SIZE * SIZE, nb_steps_warmup=10, target_model_update=1e-2)
 
     dqn.compile(Adam(lr=1e-3), metrics=['mse'])
-    dqn.fit(env, nb_steps=50000, visualize=False, verbose=1)
+    dqn.fit(env, nb_steps=500000, visualize=False, verbose=1)
     model.save('bots/ann.h5')
     print('Done')
