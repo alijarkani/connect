@@ -25,6 +25,8 @@ class Game(object):
         for player in self.players:
             player.prepare(self._board, self)
 
+        self._board.draw()
+
     @property
     def players(self):
         return self._players
@@ -56,7 +58,6 @@ class Game(object):
         return self.player
 
     def handle(self):
-        self._board.draw()
 
         while self._board.has_empty_cell:
             player = self.turn()
